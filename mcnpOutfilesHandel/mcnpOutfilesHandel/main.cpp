@@ -5,14 +5,15 @@
 int main()
 {
 	std::string dirpath;
-	// dirpath = filedirGet();
-	// std::cout << dirpath << std::endl;
+
+	dirpath = filedirGet();
+	std::cout << dirpath << std::endl;
 	
 	//std::string filepath = "E:\\体模变形\\变形New\\MCNP\\simulate_answer\\test\\am_ap_0o";
-	std::string filepath = "E:\\体模变形\\变形New\\MCNP\\simulate_answer\\test\\fortest.txt";
-	singlefileHandel(filepath);
-
-
+	//std::string filepath = "E:\\体模变形\\变形New\\MCNP\\simulate_answer\\test\\fortest.txt";
+	//singlefileHandel(filepath);
+	AllInfo InfoForAll;
+	allinfoStore(InfoForAll, dirpath);
 
 	return 0;
 }

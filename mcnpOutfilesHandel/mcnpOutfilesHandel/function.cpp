@@ -8,49 +8,326 @@ std::string filedirGet()
 	char dirtmp[300];
 	std::cin.getline(dirtmp, 300);
 	filepath = dirtmp;
+	if ('\\' != filepath[filepath.length() - 1])
+	{
+		filepath.append("\\");
+	}
 
 	return filepath;
 }
 
-//处理单个output文件
-//mcnp的output文件以1开头的行分割每个部分，除少数*符号外所有的行首字母一定是空格
-int singlefileHandel(std::string filepath)
+int allinfoStore(AllInfo& InfoForAll, std::string dirpath)
 {
-	AllInfo ALLINFO;
-	std::ifstream filehandel;
-	filehandel.open(filepath,std::ios::in);
+	// age : rpiam rpiaf am af 15m 15f 10m 10f 5m 5f
+	// dir : ap pa llat rlat rot iso
+	// erg : 0 ~ 19
+	std::vector<std::string> ageall = { "rpiam", "rpiaf", "am", "af", "15m", "15f", "10m", "10f", "5m", "5f" };
+	std::vector<std::string> dirall = { "ap", "pa", "llat", "rlat", "rot", "iso" };
+	std::vector<std::string> ergall = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" };
 
-	if (filehandel.fail())
+	int filelostcount = 0;
+
+	// for (int i = 0; i < ageall.size(); i++)
+	int i = 2;     // only for test "am"
 	{
-		std::cout << filepath << " is not exist! Skip this file." << std::endl;
-		return 1;
+		for (int j = 0; j < dirall.size(); j++)
+		{
+			for (int k = 0; k < ergall.size(); k++)
+			{
+				PhantomAgeDirErg agedirerg;
+				agedirerg.name = ageall[i] + "_" + dirall[j] + "_" + ergall[k] + "o";
+				std::string filepath; filepath.clear();
+				filepath = dirpath + agedirerg.name;
+				if (j == 0 && k == 0) // 储存体模信息
+				{
+					if (-1 == singlefileHandel(InfoForAll, ageall[i], dirall[j], ergall[k], filepath, true))
+					{
+						filelostcount++;
+					}
+				}
+				else                  //每个年龄性别体模信息只储存一次就行
+				{
+					if (-1 == singlefileHandel(InfoForAll, ageall[i], dirall[j], ergall[k], filepath, false))
+					{
+						filelostcount++;
+					}
+				}
+			}
+		}
 	}
 
-	char *linetmp = new char[300];
-	std::string commandstr;
-	filehandel.getline(linetmp, 299);
+	std::cout << "--------------------" << std::endl;
+	std::cout << filelostcount << "files have not found!" << std::endl;
+	return 0;
+}
 
-	while (true != filehandel.eof())
+//处理单个output文件
+//mcnp的output文件以1开头的行分割每个部分，除少数*符号外所有的行首字母一定是空格
+int singlefileHandel(AllInfo& InfoForAll, std::string ageinfo, std::string dirinfo, std::string erginfo,
+	std::string filepath, bool ifhandelgeo)
+{
+	std::fstream filein;
+	filein.open(filepath);
+
+	if (filein.fail())
 	{
-		if ('1' == *(linetmp))
+		std::cout << filepath << " is not exist! " << "Skip and do nothing! " << std::endl;
+		return -1;
+	}
+	else
+	{
+		std::cout << filepath << " handeling ~~" << std::endl;
+		char* linetmp = new char[300]; linetmp[0] = '\0';
+		std::string commandtmp; commandtmp.clear();
+		while (!filein.eof())
 		{
-			commandstr = marklineHandel(linetmp);   // 识别以1开头的行，这是输出文件每个部分的分隔线，后面紧跟的内容是两个带1行之间内容的信息
-			strcpy(linetmp, infoGet(ALLINFO, commandstr, linetmp, filehandel).c_str());
+			filein.getline(linetmp, 299);
+			if ('1' == linetmp[0]) // 目的是找到第一个以1开头的行
+			{
+				break;
+			}
+		}
+
+		std::string tmpforlinetmp;
+		PhantomInfo phantominfo;
+		TallyInfoInAPhantom phantomtallies;
+
+		while (1)
+		{
+			tmpforlinetmp.clear();
+			commandtmp = marklineHandel(linetmp);
+			
+			tmpforlinetmp = infoInSFGet(filein, commandtmp, linetmp,
+				phantominfo, phantomtallies, ifhandelgeo);  // 读取体模信息和相关的tally信息,返回下一个以1开头的行
+
+			strcpy(linetmp, tmpforlinetmp.c_str());
+			if (filein.eof() || !strcmp("#####", linetmp)) //遇到文件结尾或者数据处理中返回的五个#，结束循环
+			{
+				break;
+			}
+		}
+		
+		if (true == ifhandelgeo && (phantominfo.gramdensity_count.empty()
+			|| phantominfo.organvol_count.empty() || phantominfo.organwet_count.empty()))// 没有读出体模信息
+		{
+			std::cout << "Can't get Phantom vol&wet&density info from this file" << std::endl;
 		}
 		else
 		{
-			filehandel.getline(linetmp, 299);
+			InfoForAll.phantominfo_count_all.insert({ ageinfo, phantominfo });
+		}
+		if (true == phantomtallies.tallyinaphantom_count.empty())                       // 没有读出任何tally信息
+		{
+			std::cout << "Can't get Phantom tally info from this file" << std::endl;
+		}
+		else
+		{
+			InfoForAll.tally_count_all.insert({ ageinfo + "_" + dirinfo + "_" + erginfo, phantomtallies });
 		}
 
-		if (true == filehandel.eof())  //防止在infoGet函数中出现死循环
+	}
+
+	filein.close();
+	
+	return 0;
+}
+
+std::string infoInSFGet(std::fstream& filein, std::string commandtmp, char* linetmp,
+	PhantomInfo& phantominfo, TallyInfoInAPhantom& phantomtallies, bool ifhandelgeo)
+{
+	std::string nextcommandline;
+	if (!commandtmp.compare("cell volumes and masses") && true == ifhandelgeo)  // 需要获得体模的信息
+	{
+		nextcommandline = phantominfoGETSF(filein, linetmp, phantominfo);
+	}
+	else if (0 == commandtmp.find("tally"))     // tally行,分f4和f8两种，可能出现“1tally fluctuation charts”这种情况，需要做判断
+	{
+		TallyInfo onetally;
+		nextcommandline = tallyinfoGetSF(filein, linetmp, phantomtallies);
+	}
+
+	else
+	{
+		while (true != filein.eof())
+		{
+			filein.getline(linetmp, 299);
+			if ('1' == *linetmp)   // 到了下一个命令行
+			{
+				nextcommandline = linetmp;
+				return nextcommandline;
+			}
+		}
+	}
+	
+	return nextcommandline;
+}
+
+std::string phantominfoGETSF(std::fstream& filein, char* linetmp, PhantomInfo& phantominfo)
+{
+	std::string commandline = linetmp; // 储存下一个命令行和作为linetmptmp的临时储存
+	char *linetmptmp = new char[300];
+	std::stringstream sstmp; sstmp.clear();
+
+	while (true != filein.eof())
+	{
+		filein.getline(linetmptmp, 299);
+		if ('1' == *linetmptmp)   // 到了下一个命令行
+		{
+			commandline = linetmptmp;
+			return commandline;
+		}
+		else
+		{
+			for (int i = 0; i < strlen(linetmptmp); i++)
+			{
+				if (' ' != linetmptmp[i]) // 去除开头的所有空格
+				{
+					strcpy(linetmptmp, linetmptmp + i);
+					break;
+				}
+			}
+			if (linetmptmp[0] >= '0' && linetmptmp[0] <= '9')  //数字
+			{
+				commandline = linetmptmp;
+				sstmp.clear();
+				sstmp.str(commandline);
+
+				// A example
+				//        cell     atom          gram         input       calculated                            reason volume
+				//                density       density       volume        volume         mass       pieces    not calculated
+				//    1   777  0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00      0      infinite
+				float gramdensity = 0; float organvol = 0; float organwet = 0;
+				int organID = 0;
+
+				sstmp >> organID; sstmp >> organID;
+				sstmp >> gramdensity; sstmp >> gramdensity;
+				sstmp >> organvol;
+				sstmp >> organwet; sstmp >> organwet;
+
+				// Store phantom info line by line
+				phantominfo.organwet_count.insert({ organID, organwet });
+				phantominfo.organvol_count.insert({ organID,organvol });
+				phantominfo.gramdensity_count.insert({ organID,gramdensity });
+			}
+		}
+	}
+	
+	// reach the end of file
+	commandline == "#####";
+	return commandline;
+}
+
+std::string tallyinfoGetSF(std::fstream& filein, char* linetmp, TallyInfoInAPhantom& phantomtallies)
+{
+	std::string commandline = linetmp;
+	char* linetmptmp = new char[300];
+	TallyInfo onetally;
+	int tallytype;  // 记录tally的类型
+
+	std::stringstream sstmp; sstmp.clear();
+	commandline.erase(0, 6); // 删除开头的1tally
+	int ii = 0;
+	for (; ii < commandline.length(); ii++)
+	{
+		if (' ' != commandline[ii])
 		{
 			break;
 		}
 	}
+	commandline.erase(0, ii);
+	if (commandline[0] >='0' && commandline[0] <= '9')  // 用于排除其他无效项
+	{
+		sstmp.str(commandline);
 
-	filehandel.close();
+		sstmp >> tallytype;
+
+
+		while (true != filein.eof())
+		{
+			filein.getline(linetmptmp, 299);
+			if ('1' == *linetmptmp)
+			{
+				commandline = linetmptmp;
+				break;
+			}
+
+			for (int i = 0; i < strlen(linetmptmp); i++)
+			{
+				if (' ' != linetmptmp[i]) // 去除开头的所有空格
+				{
+					strcpy(linetmptmp, linetmptmp + i);
+					break;
+				}
+			}
+
+			commandline.clear();
+			commandline = linetmptmp;
+
+			if (0 == commandline.find("tally type ")) // tally是否为*
+			{
+				commandline.erase(0, 12);
+				if ('*' == commandline[0])
+				{
+					onetally.isStar = true;
+				}
+				else
+				{
+					onetally.isStar = false;
+				}
+			}
+
+			if (0 == commandline.find("cell ("))
+			{
+				float tallyvalue = 0; // 暂时储存值和统计误差
+				float tallyerror = 0; //
+				commandline.erase(0, 6);
+				int indextmp = commandline.find("<");
+				std::string inindex; inindex.clear();
+				inindex.append(commandline, 0, indextmp);
+				sstmp.clear();
+				sstmp.str(inindex);
+				sstmp >> indextmp;  // cell 序号
+
+				// 读取下一行，为cell的数据行
+				filein.getline(linetmptmp, 299);
+				for (int i = 0; i < strlen(linetmptmp); i++)
+				{
+					if (' ' != linetmptmp[i]) // 去除开头的所有空格
+					{
+						strcpy(linetmptmp, linetmptmp + i);
+						break;
+					}
+				}
+				sstmp.clear();
+				sstmp.str(linetmptmp);
+				sstmp >> tallyvalue;
+				sstmp >> tallyerror;
+
+				std::pair<float, float> val_err(tallyvalue, tallyerror);
+				onetally.valerr_count.insert({ indextmp, val_err });
+			}
+		}
+
+		phantomtallies.tallyinaphantom_count.insert({ tallytype , onetally });
+
+		return commandline;
+	}
+	else
+	{
+		while (true != filein.eof())
+		{
+			filein.getline(linetmptmp, 299);
+			if ('1' == *linetmptmp)
+			{
+				commandline = linetmptmp;
+				return commandline;
+			}
+		}
+	}
 	
-	return 0;
+	// reach the end of file
+	commandline == "#####";
+	return commandline;
 }
 
 // 识别以1开头的行代表什么类型的信息，
@@ -104,95 +381,4 @@ std::string marklineHandel(char *marklineline)
 	}
 	commandstr = linetmp;
 	return commandstr;
-}
-
-// 按照commondstr的命令，储存信息
-// 返回下一个命令行的string对象
-std::string infoGet(AllInfo& ALLINFO, std::string& commandstr, std::string linetmp, std::ifstream& filehandel)
-{
-	
-	if (!commandstr.compare("cell volumes and masses"))  // 储存体积和质量
-	{
-		return weightandvolumeStore(ALLINFO, filehandel);
-	}
-
-
-	char *linetmptmp = new char[300];
-
-	while (true != filehandel.eof())
-	{
-		filehandel.getline(linetmptmp, 299);
-		if ('1' == *(linetmptmp))
-		{
-			linetmp = linetmptmp;
-			return linetmp;
-		}
-	}
-}
-
-// 储存质量和体积信息
-// 传入的文件对象已经定位到目标行
-// 返回下一个命令行的string对象
-std::string weightandvolumeStore(AllInfo& ALLINFO, std::ifstream& filehandel)
-{
-	char *linetmp = new char[300]; *linetmp = '\0';
-	std::string linetmptmp;
-	std::stringstream sstmp;
-	sstmp.clear();
-
-	while (!filehandel.eof())
-	{
-		filehandel.getline(linetmp, 299);
-		linetmptmp.clear();
-		linetmptmp = linetmp;
-
-		if ('1' == linetmptmp[0])  // 到下一个标志行了
-		{
-			return linetmptmp;
-		}
-
-		for (int i = 0; i < linetmptmp.length(); i++)
-		{
-			if (' ' == linetmptmp[0])
-			{
-				linetmptmp.erase(0, 1);    // 删除开头的空格
-				i--;
-			}
-		}
-
-		if (linetmptmp[0] > '0' && linetmptmp[0] < '9')
-		{
-			sstmp.clear();
-			int organserialtmp; float densitytmp; float volumetmp; float weighttmp;
-			sstmp.str(linetmptmp);
-			sstmp >> linetmptmp >> organserialtmp >> linetmptmp >> densitytmp >> volumetmp >> linetmptmp >> weighttmp;
-			ALLINFO.phantominfo.gramdensity_count.insert({ organserialtmp, densitytmp });
-			ALLINFO.phantominfo.organvol_count.insert({ organserialtmp, volumetmp });
-			ALLINFO.phantominfo.organwet_count.insert({ organserialtmp, weighttmp });
-		}
-	}
-
-	phantomInfoShow(ALLINFO);
-	return "\n";
-}
-
-void phantomInfoShow(AllInfo& ALLINFO)
-{
-	// 定义迭代器
-	std::map<int, float>::iterator p1,p2,p3;
-	std::cout << "--------Information for current PHANTOM--------" << std::endl;
-	std::cout << " OrganId " << "    Density    "<< "    Volume    " << "    Weight    " << std::endl;
-	for (p1 = ALLINFO.phantominfo.gramdensity_count.begin(), 
-		p2 = ALLINFO.phantominfo.organvol_count.begin(),
-		p3 = ALLINFO.phantominfo.organwet_count.begin();
-		p1 != ALLINFO.phantominfo.gramdensity_count.end(); 
-		p1++)
-	{
-		std::cout << std::setw(9) << p1->first;
-		std::cout << std::setw(15) << std::setprecision(6) << p1->second;
-		std::cout << std::setw(15) << std::setprecision(6) << p2->second;
-		std::cout << std::setw(15) << std::setprecision(6) << p3->second;
-		std::cout << std::endl;
-		p2++; p3++;
-	}
 }
