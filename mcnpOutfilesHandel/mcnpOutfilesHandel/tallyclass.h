@@ -45,14 +45,33 @@ class PhantomAgeDirErg
 {
 public:
 	PhantomAgeDirErg();
+	PhantomAgeDirErg(std::string agedirerg);
 	std::string name;
 	std::string ageGet();
 	std::string dirGet();
 	std::string ergGet();
 };
 
+// age : rpiam rpiaf am af 15m 15f 10m 10f 5m 5f
+// dir : ap pa llat rlat rot iso
+// erg : 0 ~ 19
+const std::vector<std::string> ageall = { "rpiam", "rpiaf", "am", "af", "15m", "15f", "10m", "10f", "5m", "5f" };
+const std::vector<std::string> dirall = { "ap", "pa", "llat", "rlat", "rot", "iso" };
+const std::vector<std::string> ergall = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" };
+const std::vector<std::string> ergall_val = { "0.02", "0.03", "0.04" , "0.05" , "0.06" , "0.08" , "0.1" , "0.15" , "0.2" , "0.3" , "0.4" , "0.5" , "0.6" , "0.8" , "1" , "2" , "4" , "6" , "8" , "10" };
 
+// 红骨髓的分布值，注意总百分比不是1
+const std::vector<double>  FractionRBMForAdult = { 2.4,  0.9,  15.9,  6.8,  1.6,  13.1,  8.8 ,  2.7,  2.2,  8.9 ,  6.8 ,  5.5,  1.7 };
+const std::vector<double>  FractionRBMFor15 = { 2.5,  0.9,  11.6,  9.4,  1.1,  15.6,  10.9,  2.9,  2.7,  10.9,  8.4 ,  6.7,  2.1 };
+const std::vector<double>  FractionRBMFor10 = { 3.1,  1  ,  9.2 ,  9.2,  0.9,  18.5,  13.6,  3.3,  3.3,  13.7,  10.5,  8.4,  2.7 };
+const std::vector<double>  FractionRBMFor5 = { 2.3,  0.8,  7.6 ,  6.7,  0.8,  17.5,  16.1,  2.8,  3.9,  16.1,  12.3,  9.9,  3.1 };
 
+// Ka, pGy*cm^2
+const std::vector<double>  KERMAFREEINAIR = {1.68, 0.721, 0.429, 0.323, 0.289, 0.307, 0.371, 0.599, 0.856, 1.38, 1.89, 2.38, 2.84, 3.69, 4.47, 7.54, 12.1, 16.1, 20.1, 24};
+
+// 源的面积按照"ap", "pa", "llat", "rlat", "rot", "iso"的顺序, cm2
+// const std::vector<double> SOURCEAREA = {12104, 12104, 7476, 7476, 39160, 113411.49};
+const std::vector<double> SOURCEAREA = { 12104, 12104, 7476, 7476, 9790, 28352.87 };
 //class TallySum
 //{
 //public:
@@ -80,3 +99,22 @@ std::string infoInSFGet(std::fstream& filein, std::string commandtmp, char* line
 std::string phantominfoGETSF(std::fstream& filein, char* linetmp, PhantomInfo& phantominfo);
 std::string tallyinfoGetSF(std::fstream& filein, char* linetmp, TallyInfoInAPhantom& phantomtallies);
 
+// 体模信息输出，分文件输出和屏幕显示两种
+// phantomname可取"am" "af" ~~ "5m" "5f" "rpiam" "rpiaf"
+int showSinglePhantomInfo(std::string phantomname, AllInfo InfoForAll, std::string outputfilepath);
+int showSinglePhantomInfo(std::string phantomname, AllInfo InfoForAll);
+
+// 一个具体的例子的所有tally信息输出，分显示和输出到文件两种
+// instancename为一个具体的文件名，可取例如"am_ap_0"，即体模名_方向_能量的组合
+int showSinglePhantomInfo(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
+int showSinglePhantomInfo(PhantomAgeDirErg instancename, AllInfo InfoForAll);
+
+// 生成光子比释动能到器官吸收剂量的转换系数DCCk
+int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll, std::string outputfilepath);
+int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAll, std::string outputfilepath);
+int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll);
+int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAll);
+
+// 计算骨髓的吸收剂量转换系数DCCk RBM
+int calDCCKRBM(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
+int calDCCKRBM(PhantomAgeDirErg instancename, AllInfo InfoForAll);

@@ -1,5 +1,7 @@
 #include "tallyclass.h"
 
+// 用于储存信息的函数
+
 std::string filedirGet()
 {
 	std::cout << "Please input file dir path: " << std::endl;
@@ -18,17 +20,10 @@ std::string filedirGet()
 
 int allinfoStore(AllInfo& InfoForAll, std::string dirpath)
 {
-	// age : rpiam rpiaf am af 15m 15f 10m 10f 5m 5f
-	// dir : ap pa llat rlat rot iso
-	// erg : 0 ~ 19
-	std::vector<std::string> ageall = { "rpiam", "rpiaf", "am", "af", "15m", "15f", "10m", "10f", "5m", "5f" };
-	std::vector<std::string> dirall = { "ap", "pa", "llat", "rlat", "rot", "iso" };
-	std::vector<std::string> ergall = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" };
-
 	int filelostcount = 0;
 
-	// for (int i = 0; i < ageall.size(); i++)
-	int i = 2;     // only for test "am"
+	for (int i = 0; i < ageall.size(); i++)
+	//int i = 2;     // only for test "am"
 	{
 		for (int j = 0; j < dirall.size(); j++)
 		{
