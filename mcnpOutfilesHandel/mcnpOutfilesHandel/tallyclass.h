@@ -66,6 +66,9 @@ const std::vector<double>  FractionRBMFor15 = { 2.5,  0.9,  11.6,  9.4,  1.1,  1
 const std::vector<double>  FractionRBMFor10 = { 3.1,  1  ,  9.2 ,  9.2,  0.9,  18.5,  13.6,  3.3,  3.3,  13.7,  10.5,  8.4,  2.7 };
 const std::vector<double>  FractionRBMFor5 = { 2.3,  0.8,  7.6 ,  6.7,  0.8,  17.5,  16.1,  2.8,  3.9,  16.1,  12.3,  9.9,  3.1 };
 
+// 组织权重因子
+const double TISSUESWEIGHTINGFACTOR[4] = { 0.12, 0.08, 0.04, 0.01 };
+
 // Ka, pGy*cm^2
 const std::vector<double>  KERMAFREEINAIR = {1.68, 0.721, 0.429, 0.323, 0.289, 0.307, 0.371, 0.599, 0.856, 1.38, 1.89, 2.38, 2.84, 3.69, 4.47, 7.54, 12.1, 16.1, 20.1, 24};
 
@@ -116,5 +119,31 @@ int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll);
 int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAll);
 
 // 计算骨髓的吸收剂量转换系数DCCk RBM
-int calDCCKRBM(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
-int calDCCKRBM(PhantomAgeDirErg instancename, AllInfo InfoForAll);
+int calDCCKRBMWithShow(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
+int calDCCKRBMWithShow(PhantomAgeDirErg instancename, AllInfo InfoForAll);
+float calDCCKRBMWithOutShow(PhantomAgeDirErg instancename, AllInfo InfoForAll); // 返回骨髓的DCCKRBM
+
+//0 红骨髓 结肠 肺 胃 乳腺 其余组织
+//1 性腺
+//2 膀胱 食道 肝脏 甲状腺
+//3 骨表面 脑 唾液腺 皮肤
+
+// 计算性别平均的有效剂量
+// ICRP 20 WT 性腺 0.25 红骨髓 0.12 肺 0.12 甲状腺 0.03 乳腺 0.15 骨表面 0.03 其余组织 0.30 全身 1.00
+// ICRP 60 WT 性腺 0.2  红骨髓 0.12 肺 0.12 胃 0.12 结肠 0.12 甲状腺 0.05 乳腺 0.05 食道 0.05 肝 0.05 膀胱 0.05 骨表面 0.01 皮肤 0.01 其余组织 0.05 全身 1.00
+// ICRP 103 WT 红骨髓 结肠 肺 胃 乳腺 其余组织 0.12 性腺 0.08 膀胱 食道 肝 甲状腺 0.04 骨表面 脑 唾液腺 皮肤 0.01
+// ICRP 103 其余组织标称WT用于14个组织的平均剂量
+// 13(男女各少一个)个器官当量剂量取平均
+// 红骨髓(在松质骨中)
+// 结肠 76 78 80 82 84 肺 97 99 胃 72 乳腺 63 65 
+// 性腺 129 130(睾丸) 111 112(卵巢) 
+// 膀胱 137 食道 110 肝 95 甲状腺 132 
+// 骨表面 脑 61 唾液腺 120 121 皮肤 125
+// 暂时只计算103的数据
+float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll);
+float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
+
+// 返回器官能量沉积MeV
+std::pair<float, float> getSingleOrganErg(PhantomAgeDirErg instancename, AllInfo InfoForAll, int organID);
+// 返回器官质量
+float getSingleOrganWet(PhantomAgeDirErg instancename, AllInfo InfoForAll, int organID);

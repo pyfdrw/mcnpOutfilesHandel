@@ -8,7 +8,7 @@ int main()
 
 	// dirpath = filedirGet();
 	// std::cout << dirpath << std::endl;
-	dirpath = "E:\\体模变形\\变形New\\MCNP\\Allinput\\ANS\\";
+	dirpath = "E:\\体模变形\\变形New\\MCNP\\Allinput\\test\\";
 	//std::string filepath = "E:\\体模变形\\变形New\\MCNP\\simulate_answer\\test\\am_ap_0o";
 	//std::string filepath = "E:\\体模变形\\变形New\\MCNP\\simulate_answer\\test\\fortest.txt";
 	//singlefileHandel(filepath);
@@ -21,12 +21,17 @@ int main()
 	showSinglePhantomInfo(instancename, InfoForAll);
 
 	calDCCK(129, 130, "am", InfoForAll);
+	calDCCK(111, 112, "af", InfoForAll);
+
 	// calDCCK(129, "am", InfoForAll);
 
 	//calDCCK(129, 130, "am", InfoForAll, "E:\\体模变形\\变形New\\MCNP\\simulate_answer\\AM\\am_ans_129.txt");
 	//calDCCK(129, "am", InfoForAll, "E:\\体模变形\\变形New\\MCNP\\simulate_answer\\AM\\am_ans_129.txt");
-	calDCCK(14, "am", InfoForAll);
+	//calDCCK(14, "am", InfoForAll);
 
-	calDCCKRBM(instancename, InfoForAll);
+	calDCCKRBMWithShow(instancename, InfoForAll);
+
+	std::cout << "\nEffective dose for AM&AF with ergindex 6 = " << calEffectiveDose(instancename, InfoForAll) << std::endl;
+
 	return 0;
 }
