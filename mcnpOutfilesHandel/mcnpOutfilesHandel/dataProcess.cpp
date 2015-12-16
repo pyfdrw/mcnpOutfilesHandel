@@ -122,7 +122,7 @@ int showSinglePhantomInfo(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 }
 
 // 器官输入顺序无所谓,不包括红骨髓部分
-int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAll)
+float *calDCCKWithOutShow(int organleft, int organright, std::string agetmp, AllInfo InfoForAll)
 {
 	// 获得器官的质量信息
 	float organleftmass = 0;
@@ -139,7 +139,7 @@ int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAl
 		}
 		else
 		{
-			return -1;
+			return 0;
 		}
 		if ((onephantom_p->second).organwet_count.end() != (infotmp_p = (onephantom_p->second.organwet_count.find(organright)))) // 不存在这个器官
 		{
@@ -147,12 +147,12 @@ int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAl
 		}
 		else
 		{
-			return -1;
+			return 0;
 		}
 	}
 	else // 不存在这个年龄段
 	{
-		return -1;
+		return 0;
 	}
 
 	// 创建储存转换系数的数组
@@ -203,25 +203,25 @@ int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAl
 	}
 
 	// 输出部分
-	std::cout << "------------------" << std::endl;
-	std::cout << "Organ     " << organleft << "  +  " << organright << std::endl;
-	std::cout << "Erenge(MeV)       AP       PA     LLAT     RLAT      ROT      ISO" << std::endl;
-	for (int i = 0; i < ergall.size(); i++)  // 能量遍历
-	{
-		std::cout << std::setw(11) << std::setprecision(3) << std::left << ergall_val[i];
-		for (int j = 0; j < dirall.size(); j++)  // 方向遍历
-		{
-			std::cout << std::setw(9) << std::setprecision(3) << std::right << conversioncoefficients[j + i * dirall.size()];
-		}
-		std::cout << std::endl;
-	}
+	// std::cout << "------------------" << std::endl;
+	// std::cout << "Organ     " << organleft << "  +  " << organright << std::endl;
+	// std::cout << "Erenge(MeV)       AP       PA     LLAT     RLAT      ROT      ISO" << std::endl;
+	// for (int i = 0; i < ergall.size(); i++)  // 能量遍历
+	// {
+	// 	std::cout << std::setw(11) << std::setprecision(3) << std::left << ergall_val[i];
+	// 	for (int j = 0; j < dirall.size(); j++)  // 方向遍历
+	// 	{
+	// 		std::cout << std::setw(9) << std::setprecision(3) << std::right << conversioncoefficients[j + i * dirall.size()];
+	// 	}
+	// 	std::cout << std::endl;
+	// }
 
 
-	return 0;
+	return conversioncoefficients;
 }
 
 // 器官输入顺序无所谓,不包括红骨髓部分
-int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll)
+float *calDCCKWithOutShow(int organ, std::string agetmp, AllInfo InfoForAll)
 {
 	// 获得器官的质量信息
 	float organmass = 0;
@@ -237,12 +237,12 @@ int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll)
 		}
 		else
 		{
-			return -1;
+			return 0;
 		}
 	}
 	else // 不存在这个年龄段
 	{
-		return -1;
+		return 0;
 	}
 
 	// 创建储存转换系数的数组
@@ -289,21 +289,21 @@ int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll)
 	}
 
 	// 输出部分
-	std::cout << "------------------" << std::endl;
-	std::cout << "Organ    " << organ << std::endl;
-	std::cout << "Erenge(MeV)       AP       PA     LLAT     RLAT      ROT      ISO" << std::endl;
-	for (int i = 0; i < ergall.size(); i++)  // 能量遍历
-	{
-		std::cout << std::setw(11) << std::setprecision(3) << std::left << ergall_val[i];
-		for (int j = 0; j < dirall.size(); j++)  // 方向遍历
-		{
-			std::cout << std::setw(9) << std::setprecision(3) << std::right << conversioncoefficients[j + i * dirall.size()];
-		}
-		std::cout << std::endl;
-	}
+	// std::cout << "------------------" << std::endl;
+	// std::cout << "Organ    " << organ << std::endl;
+	// std::cout << "Erenge(MeV)       AP       PA     LLAT     RLAT      ROT      ISO" << std::endl;
+	// for (int i = 0; i < ergall.size(); i++)  // 能量遍历
+	// {
+	// 	std::cout << std::setw(11) << std::setprecision(3) << std::left << ergall_val[i];
+	// 	for (int j = 0; j < dirall.size(); j++)  // 方向遍历
+	// 	{
+	// 		std::cout << std::setw(9) << std::setprecision(3) << std::right << conversioncoefficients[j + i * dirall.size()];
+	// 	}
+	// 	std::cout << std::endl;
+	// }
 
 
-	return 0;
+	return conversioncoefficients;
 }
 
 
@@ -798,12 +798,20 @@ float calDCCKRBMWithoutShow(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 {
 	// instancename1 & instancename1 represent male & female respectively
-	int dirindex;
+	int dirindex; int ergindex;
 	for (int i = 0; i < dirall.size(); i++) // 记录方向
 	{
 		if (0 == dirall[i].compare(instancename.dirGet()))
 		{
 			dirindex = i;
+			break;
+		}
+	}
+	for (int i = 0; i < ergall.size(); i++) // 记录方向
+	{
+		if (0 == ergall[i].compare(instancename.ergGet()))
+		{
+			ergindex = i;
 			break;
 		}
 	}
@@ -852,8 +860,8 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	coloneqdoseFemale = (ergdeposit2[0] + ergdeposit2[1] + ergdeposit2[2] + ergdeposit2[3] + ergdeposit2[4])
 		/ (organmass2[0] + organmass2[1] + organmass2[2] + organmass2[3] + organmass2[4]);
 
-	coloneqdoseMale = SOURCEAREA[dirindex] * coloneqdoseMale * 160.2;
-	coloneqdoseFemale = SOURCEAREA[dirindex] * coloneqdoseFemale * 160.2;
+	coloneqdoseMale = SOURCEAREA[dirindex] * coloneqdoseMale * 160.22;
+	coloneqdoseFemale = SOURCEAREA[dirindex] * coloneqdoseFemale * 160.22;
 
 	float coloneqdose = (coloneqdoseMale + coloneqdoseFemale) / 2;
 
@@ -864,16 +872,16 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	lungdoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 97).first + getSingleOrganErg(instancename2, InfoForAll, 99).first)
 		/ (getSingleOrganWet(instancename2, InfoForAll, 97) + getSingleOrganWet(instancename2, InfoForAll, 99));
 	
-	lungdoseMale = lungdoseMale * 160.2 * SOURCEAREA[dirindex];
-	lungdoseFemale = lungdoseFemale * 160.2 * SOURCEAREA[dirindex];
+	lungdoseMale = lungdoseMale * 160.22 * SOURCEAREA[dirindex];
+	lungdoseFemale = lungdoseFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float lungdose = (lungdoseMale + lungdoseFemale) / 2;
 
 	// 胃 
 	float stomachdoseMale = getSingleOrganErg(instancename1, InfoForAll, 72).first / getSingleOrganWet(instancename1, InfoForAll, 72);
 	float stomachdoseFemale = getSingleOrganErg(instancename2, InfoForAll, 72).first / getSingleOrganWet(instancename2, InfoForAll, 72);
-	stomachdoseMale = stomachdoseMale * 160.2 * SOURCEAREA[dirindex];
-	stomachdoseFemale = stomachdoseFemale * 160.2 * SOURCEAREA[dirindex];
+	stomachdoseMale = stomachdoseMale * 160.22 * SOURCEAREA[dirindex];
+	stomachdoseFemale = stomachdoseFemale * 160.22 * SOURCEAREA[dirindex];
 	float stomachdose = (stomachdoseMale + stomachdoseFemale) / 2;
 
 	// 乳腺 63 65
@@ -882,8 +890,8 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 		/ (getSingleOrganWet(instancename1, InfoForAll, 63) + getSingleOrganWet(instancename1, InfoForAll, 65));
 	breastdoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 63).first + getSingleOrganErg(instancename2, InfoForAll, 65).first)
 		/ (getSingleOrganWet(instancename2, InfoForAll, 63) + getSingleOrganWet(instancename2, InfoForAll, 65));
-	breastdoseMale = breastdoseMale * 160.2 * SOURCEAREA[dirindex];
-	breastdoseFemale = breastdoseFemale * 160.2 * SOURCEAREA[dirindex];
+	breastdoseMale = breastdoseMale * 160.22 * SOURCEAREA[dirindex];
+	breastdoseFemale = breastdoseFemale * 160.22 * SOURCEAREA[dirindex];
 	float breastdose = (breastdoseMale + breastdoseFemale) / 2;
 
 	// 其余组织
@@ -952,13 +960,13 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 		dosesumtmp1 += residualdoseMale[i];
 	}
 	dosesumtmp1 /= 13;
-	dosesumtmp1 = dosesumtmp1 * 160.2 * SOURCEAREA[dirindex];
+	dosesumtmp1 = dosesumtmp1 * 160.22 * SOURCEAREA[dirindex];
 	for (int i = 0; i < 13; i++)
 	{
 		dosesumtmp2 += residualdoseFemale[i];
 	}
 	dosesumtmp2 /= 13;
-	dosesumtmp2 = dosesumtmp2 * 160.2 * SOURCEAREA[dirindex];
+	dosesumtmp2 = dosesumtmp2 * 160.22 * SOURCEAREA[dirindex];
 
 	float residualdose = (dosesumtmp1 + dosesumtmp2) / 2;
 	
@@ -969,8 +977,8 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 		/ (getSingleOrganWet(instancename1, InfoForAll, 129) + getSingleOrganWet(instancename1, InfoForAll, 130));
 	gonaddoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 111).first + getSingleOrganErg(instancename2, InfoForAll, 112).first)
 		/ (getSingleOrganWet(instancename2, InfoForAll, 111) + getSingleOrganWet(instancename2, InfoForAll, 112));
-	gonaddoseMale = gonaddoseMale * 160.2 * SOURCEAREA[dirindex];
-	gonaddoseFemale = gonaddoseFemale * 160.2 * SOURCEAREA[dirindex];
+	gonaddoseMale = gonaddoseMale * 160.22 * SOURCEAREA[dirindex];
+	gonaddoseFemale = gonaddoseFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float gonaddose = (gonaddoseMale + gonaddoseFemale) / 2;
 
@@ -978,8 +986,8 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	float urinarydoseMale = 0; float urinarydoseFemale = 0;
 	urinarydoseMale = (getSingleOrganErg(instancename1, InfoForAll, 137).first) / (getSingleOrganWet(instancename1, InfoForAll, 137));
 	urinarydoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 137).first) / (getSingleOrganWet(instancename2, InfoForAll, 137));
-	urinarydoseMale = urinarydoseMale * 160.2 * SOURCEAREA[dirindex];
-	urinarydoseFemale = urinarydoseFemale * 160.2 * SOURCEAREA[dirindex];
+	urinarydoseMale = urinarydoseMale * 160.22 * SOURCEAREA[dirindex];
+	urinarydoseFemale = urinarydoseFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float urinarydose = (urinarydoseMale + urinarydoseFemale) / 2;
 
@@ -987,8 +995,8 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	float oesophagusdoseMale = 0; float oesophagusdoseFemale = 0;
 	oesophagusdoseMale = (getSingleOrganErg(instancename1, InfoForAll, 110).first) / (getSingleOrganWet(instancename1, InfoForAll, 110));
 	oesophagusdoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 110).first) / (getSingleOrganWet(instancename2, InfoForAll, 110));
-	oesophagusdoseMale = oesophagusdoseMale * 160.2 * SOURCEAREA[dirindex];
-	oesophagusdoseFemale = oesophagusdoseFemale * 160.2 * SOURCEAREA[dirindex];
+	oesophagusdoseMale = oesophagusdoseMale * 160.22 * SOURCEAREA[dirindex];
+	oesophagusdoseFemale = oesophagusdoseFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float oesophagusdose = (oesophagusdoseMale + oesophagusdoseFemale) / 2;
 
@@ -996,16 +1004,16 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	float liverdoseMale = 0; float liverdoseFemale = 0;
 	liverdoseMale = (getSingleOrganErg(instancename1, InfoForAll, 95).first) / (getSingleOrganWet(instancename1, InfoForAll, 95));
 	liverdoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 95).first) / (getSingleOrganWet(instancename2, InfoForAll, 95));
-	liverdoseMale = liverdoseMale * 160.2 * SOURCEAREA[dirindex];
-	liverdoseFemale = liverdoseFemale * 160.2 * SOURCEAREA[dirindex];
+	liverdoseMale = liverdoseMale * 160.22 * SOURCEAREA[dirindex];
+	liverdoseFemale = liverdoseFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float liverdose = (liverdoseMale + liverdoseFemale) / 2;
 	// 甲状腺
 	float thyroiddoseMale = 0; float thyroiddoseFemale = 0;
 	thyroiddoseMale = (getSingleOrganErg(instancename1, InfoForAll, 132).first) / (getSingleOrganWet(instancename1, InfoForAll, 132));
 	thyroiddoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 132).first) / (getSingleOrganWet(instancename2, InfoForAll, 132));
-	thyroiddoseMale = thyroiddoseMale * 160.2 * SOURCEAREA[dirindex];
-	thyroiddoseFemale = thyroiddoseFemale * 160.2 * SOURCEAREA[dirindex];
+	thyroiddoseMale = thyroiddoseMale * 160.22 * SOURCEAREA[dirindex];
+	thyroiddoseFemale = thyroiddoseFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float thyroiddose = (thyroiddoseMale + thyroiddoseFemale) / 2;
 	// 骨表面
@@ -1026,16 +1034,16 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	}
 	BSdoseMale = ergsum1 / wetsum1;
 	BSdoseFemale = ergsum2 / wetsum2;
-	BSdoseMale = BSdoseMale * 160.2 * SOURCEAREA[dirindex];
-	BSdoseFemale = BSdoseFemale * 160.2 * SOURCEAREA[dirindex];
+	BSdoseMale = BSdoseMale * 160.22 * SOURCEAREA[dirindex];
+	BSdoseFemale = BSdoseFemale * 160.22 * SOURCEAREA[dirindex];
 	float BSdose = (BSdoseMale + BSdoseFemale) / 2;
 
 	// 脑
 	float braindoseMale = 0; float braindoseFemale = 0;
 	braindoseMale = (getSingleOrganErg(instancename1, InfoForAll, 61).first) / (getSingleOrganWet(instancename1, InfoForAll, 61));
 	braindoseFemale = (getSingleOrganErg(instancename2, InfoForAll, 61).first) / (getSingleOrganWet(instancename2, InfoForAll, 61));
-	braindoseMale = braindoseMale * 160.2 * SOURCEAREA[dirindex];
-	braindoseFemale = braindoseFemale * 160.2 * SOURCEAREA[dirindex];
+	braindoseMale = braindoseMale * 160.22 * SOURCEAREA[dirindex];
+	braindoseFemale = braindoseFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float braindose = (braindoseMale + braindoseFemale) / 2;
 
@@ -1045,8 +1053,8 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 		/ (getSingleOrganWet(instancename1, InfoForAll, 120) + getSingleOrganWet(instancename1, InfoForAll, 121));
 	salivaryglandsFemale = (getSingleOrganErg(instancename2, InfoForAll, 120).first + getSingleOrganErg(instancename2, InfoForAll, 121).first)
 		/ (getSingleOrganWet(instancename2, InfoForAll, 120) + getSingleOrganWet(instancename2, InfoForAll, 121));
-	salivaryglandsMale = salivaryglandsMale * 160.2 * SOURCEAREA[dirindex];
-	salivaryglandsFemale = salivaryglandsFemale * 160.2 * SOURCEAREA[dirindex];
+	salivaryglandsMale = salivaryglandsMale * 160.22 * SOURCEAREA[dirindex];
+	salivaryglandsFemale = salivaryglandsFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float salivaryglandsdose = (salivaryglandsMale + salivaryglandsFemale) / 2;
 
@@ -1054,24 +1062,25 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	float skinMale = 0; float skinFemale = 0;
 	skinMale = (getSingleOrganErg(instancename1, InfoForAll, 61).first) / (getSingleOrganWet(instancename1, InfoForAll, 61));
 	skinFemale = (getSingleOrganErg(instancename2, InfoForAll, 61).first) / (getSingleOrganWet(instancename2, InfoForAll, 61));
-	skinMale = skinMale * 160.2 * SOURCEAREA[dirindex];
-	skinFemale = skinFemale * 160.2 * SOURCEAREA[dirindex];
+	skinMale = skinMale * 160.22 * SOURCEAREA[dirindex];
+	skinFemale = skinFemale * 160.22 * SOURCEAREA[dirindex];
 
 	float skindose = (skinMale + skinFemale) / 2;
 
-	float equlvantdose =  (rbmeqdose * TISSUESWEIGHTINGFACTOR[0] + coloneqdose * TISSUESWEIGHTINGFACTOR[0] + 
+	float equlvantdose =  ((rbmeqdose * TISSUESWEIGHTINGFACTOR[0] + coloneqdose * TISSUESWEIGHTINGFACTOR[0] + 
 		lungdose * TISSUESWEIGHTINGFACTOR[0] + stomachdose * TISSUESWEIGHTINGFACTOR[0] + 
 		breastdose * TISSUESWEIGHTINGFACTOR[0] + residualdose * TISSUESWEIGHTINGFACTOR[0] + 
 		gonaddose * TISSUESWEIGHTINGFACTOR[1] + urinarydose * TISSUESWEIGHTINGFACTOR[2] + 
 		oesophagusdose * TISSUESWEIGHTINGFACTOR[2] + liverdose * TISSUESWEIGHTINGFACTOR[2] + 
 		thyroiddose * TISSUESWEIGHTINGFACTOR[2] + BSdose * TISSUESWEIGHTINGFACTOR[3] + 
-		braindose * TISSUESWEIGHTINGFACTOR[3] + salivaryglandsdose * TISSUESWEIGHTINGFACTOR[3] + skindose * TISSUESWEIGHTINGFACTOR[3]);
+		braindose * TISSUESWEIGHTINGFACTOR[3] + salivaryglandsdose * TISSUESWEIGHTINGFACTOR[3] + skindose * TISSUESWEIGHTINGFACTOR[3])) / 
+		KERMAFREEINAIR[ergindex];
 
 	return equlvantdose;
 }
 
 // 返回器官能量沉积 MeV，即是*f1008的数值
-std::pair<float, float> getSingleOrganErg(PhantomAgeDirErg instancename, AllInfo InfoForAll, int organID)
+std::pair<float, float> getSingleOrganErg(PhantomAgeDirErg instancename, AllInfo& InfoForAll, int organID)
 {
 	std::map<std::string, TallyInfoInAPhantom>::iterator phantomtally_p;
 	if (InfoForAll.tally_count_all.end() == (phantomtally_p = InfoForAll.tally_count_all.find(instancename.name))) // 不能找到agetmp
@@ -1101,7 +1110,7 @@ std::pair<float, float> getSingleOrganErg(PhantomAgeDirErg instancename, AllInfo
 }
 
 // 返回器官质量
-float getSingleOrganWet(PhantomAgeDirErg instancename, AllInfo InfoForAll, int organID)
+float getSingleOrganWet(PhantomAgeDirErg instancename, AllInfo& InfoForAll, int organID)
 {
 	std::string agetmp;
 	agetmp = instancename.ageGet();

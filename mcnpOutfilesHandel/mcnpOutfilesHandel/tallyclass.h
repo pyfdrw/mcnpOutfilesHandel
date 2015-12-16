@@ -115,8 +115,8 @@ int showSinglePhantomInfo(PhantomAgeDirErg instancename, AllInfo InfoForAll);
 // 生成光子比释动能到器官吸收剂量的转换系数DCCk
 int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll, std::string outputfilepath);
 int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAll, std::string outputfilepath);
-int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll);
-int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAll);
+float *calDCCKWithOutShow(int organ, std::string agetmp, AllInfo InfoForAll);
+float *calDCCKWithOutShow(int organleft, int organright, std::string agetmp, AllInfo InfoForAll);
 
 // 计算骨髓的吸收剂量转换系数DCCk RBM
 int calDCCKRBMWithShow(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
@@ -144,6 +144,10 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll);
 float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
 
 // 返回器官能量沉积MeV
-std::pair<float, float> getSingleOrganErg(PhantomAgeDirErg instancename, AllInfo InfoForAll, int organID);
+std::pair<float, float> getSingleOrganErg(PhantomAgeDirErg instancename, AllInfo& InfoForAll, int organID);
 // 返回器官质量
-float getSingleOrganWet(PhantomAgeDirErg instancename, AllInfo InfoForAll, int organID);
+float getSingleOrganWet(PhantomAgeDirErg instancename, AllInfo& InfoForAll, int organID);
+
+// 收集需要的信息
+int dataControlFun(std::string dirpath, AllInfo InfoForAll);
+int organCompareOut(float *ratiodata, std::string filename);

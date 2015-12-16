@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="control.cpp" />
     <ClCompile Include="dataProcess.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="main.cpp" />
