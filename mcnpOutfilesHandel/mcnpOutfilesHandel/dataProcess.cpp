@@ -789,7 +789,7 @@ float calDCCKRBMWithoutShow(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	airkarthiserg = KERMAFREEINAIR[energeindex];
 
 	float dcck = 0;
-	dcck = absorbdose * SOURCEAREA[dirindex] / KERMAFREEINAIR[energeindex] * 1.602 * 1e2;  // 
+	dcck = absorbdose * SOURCEAREA[dirindex] / KERMAFREEINAIR[energeindex] * 160.22;  // 
 
 	return dcck;
 }
@@ -863,7 +863,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	coloneqdoseMale = SOURCEAREA[dirindex] * coloneqdoseMale * 160.22;
 	coloneqdoseFemale = SOURCEAREA[dirindex] * coloneqdoseFemale * 160.22;
 
-	float coloneqdose = (coloneqdoseMale + coloneqdoseFemale) / 2;
+	float coloneqdose = (coloneqdoseMale + coloneqdoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	//  ∑Œ
 	float lungdoseMale = 0; float lungdoseFemale = 0;
@@ -875,14 +875,14 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	lungdoseMale = lungdoseMale * 160.22 * SOURCEAREA[dirindex];
 	lungdoseFemale = lungdoseFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float lungdose = (lungdoseMale + lungdoseFemale) / 2;
+	float lungdose = (lungdoseMale + lungdoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// Œ∏ 
 	float stomachdoseMale = getSingleOrganErg(instancename1, InfoForAll, 72).first / getSingleOrganWet(instancename1, InfoForAll, 72);
 	float stomachdoseFemale = getSingleOrganErg(instancename2, InfoForAll, 72).first / getSingleOrganWet(instancename2, InfoForAll, 72);
 	stomachdoseMale = stomachdoseMale * 160.22 * SOURCEAREA[dirindex];
 	stomachdoseFemale = stomachdoseFemale * 160.22 * SOURCEAREA[dirindex];
-	float stomachdose = (stomachdoseMale + stomachdoseFemale) / 2;
+	float stomachdose = (stomachdoseMale + stomachdoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// »ÈœŸ 63 65
 	float breastdoseMale = 0; float breastdoseFemale = 0;
@@ -892,7 +892,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 		/ (getSingleOrganWet(instancename2, InfoForAll, 63) + getSingleOrganWet(instancename2, InfoForAll, 65));
 	breastdoseMale = breastdoseMale * 160.22 * SOURCEAREA[dirindex];
 	breastdoseFemale = breastdoseFemale * 160.22 * SOURCEAREA[dirindex];
-	float breastdose = (breastdoseMale + breastdoseFemale) / 2;
+	float breastdose = (breastdoseMale + breastdoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// ∆‰”‡◊È÷Ø
 	float residualdoseMale[13] = { 0 }; float residualdoseFemale[13] = { 0 };
@@ -968,7 +968,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	dosesumtmp2 /= 13;
 	dosesumtmp2 = dosesumtmp2 * 160.22 * SOURCEAREA[dirindex];
 
-	float residualdose = (dosesumtmp1 + dosesumtmp2) / 2;
+	float residualdose = (dosesumtmp1 + dosesumtmp2) / 2 / KERMAFREEINAIR[ergindex];
 	
 
 	// –‘œŸ
@@ -980,7 +980,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	gonaddoseMale = gonaddoseMale * 160.22 * SOURCEAREA[dirindex];
 	gonaddoseFemale = gonaddoseFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float gonaddose = (gonaddoseMale + gonaddoseFemale) / 2;
+	float gonaddose = (gonaddoseMale + gonaddoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// ∞ÚÎ◊
 	float urinarydoseMale = 0; float urinarydoseFemale = 0;
@@ -989,7 +989,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	urinarydoseMale = urinarydoseMale * 160.22 * SOURCEAREA[dirindex];
 	urinarydoseFemale = urinarydoseFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float urinarydose = (urinarydoseMale + urinarydoseFemale) / 2;
+	float urinarydose = (urinarydoseMale + urinarydoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	//  ≥µ¿
 	float oesophagusdoseMale = 0; float oesophagusdoseFemale = 0;
@@ -998,7 +998,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	oesophagusdoseMale = oesophagusdoseMale * 160.22 * SOURCEAREA[dirindex];
 	oesophagusdoseFemale = oesophagusdoseFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float oesophagusdose = (oesophagusdoseMale + oesophagusdoseFemale) / 2;
+	float oesophagusdose = (oesophagusdoseMale + oesophagusdoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// ∏Œ‘‡
 	float liverdoseMale = 0; float liverdoseFemale = 0;
@@ -1007,7 +1007,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	liverdoseMale = liverdoseMale * 160.22 * SOURCEAREA[dirindex];
 	liverdoseFemale = liverdoseFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float liverdose = (liverdoseMale + liverdoseFemale) / 2;
+	float liverdose = (liverdoseMale + liverdoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 	// º◊◊¥œŸ
 	float thyroiddoseMale = 0; float thyroiddoseFemale = 0;
 	thyroiddoseMale = (getSingleOrganErg(instancename1, InfoForAll, 132).first) / (getSingleOrganWet(instancename1, InfoForAll, 132));
@@ -1015,7 +1015,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	thyroiddoseMale = thyroiddoseMale * 160.22 * SOURCEAREA[dirindex];
 	thyroiddoseFemale = thyroiddoseFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float thyroiddose = (thyroiddoseMale + thyroiddoseFemale) / 2;
+	float thyroiddose = (thyroiddoseMale + thyroiddoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 	// π«±Ì√Ê
 	// only cell 14 25 27 29 40 42 44 45 46  50  52  54  56, ∂‘”¶tally *f1008
 	std::vector<int> bonesurface = { 14, 25, 27, 29, 40, 42, 44, 45, 46,  50,  52,  54,  56 };
@@ -1036,7 +1036,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	BSdoseFemale = ergsum2 / wetsum2;
 	BSdoseMale = BSdoseMale * 160.22 * SOURCEAREA[dirindex];
 	BSdoseFemale = BSdoseFemale * 160.22 * SOURCEAREA[dirindex];
-	float BSdose = (BSdoseMale + BSdoseFemale) / 2;
+	float BSdose = (BSdoseMale + BSdoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// ƒ‘
 	float braindoseMale = 0; float braindoseFemale = 0;
@@ -1045,7 +1045,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	braindoseMale = braindoseMale * 160.22 * SOURCEAREA[dirindex];
 	braindoseFemale = braindoseFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float braindose = (braindoseMale + braindoseFemale) / 2;
+	float braindose = (braindoseMale + braindoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// ÕŸ“∫œŸ
 	float salivaryglandsMale = 0; float salivaryglandsFemale = 0;
@@ -1056,16 +1056,16 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	salivaryglandsMale = salivaryglandsMale * 160.22 * SOURCEAREA[dirindex];
 	salivaryglandsFemale = salivaryglandsFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float salivaryglandsdose = (salivaryglandsMale + salivaryglandsFemale) / 2;
+	float salivaryglandsdose = (salivaryglandsMale + salivaryglandsFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	// ∆§∑Ù
 	float skinMale = 0; float skinFemale = 0;
-	skinMale = (getSingleOrganErg(instancename1, InfoForAll, 61).first) / (getSingleOrganWet(instancename1, InfoForAll, 61));
-	skinFemale = (getSingleOrganErg(instancename2, InfoForAll, 61).first) / (getSingleOrganWet(instancename2, InfoForAll, 61));
+	skinMale = (getSingleOrganErg(instancename1, InfoForAll, 125).first) / (getSingleOrganWet(instancename1, InfoForAll, 125));
+	skinFemale = (getSingleOrganErg(instancename2, InfoForAll, 125).first) / (getSingleOrganWet(instancename2, InfoForAll, 125));
 	skinMale = skinMale * 160.22 * SOURCEAREA[dirindex];
 	skinFemale = skinFemale * 160.22 * SOURCEAREA[dirindex];
 
-	float skindose = (skinMale + skinFemale) / 2;
+	float skindose = (skinMale + skinFemale) / 2 / KERMAFREEINAIR[ergindex];
 
 	float equlvantdose =  ((rbmeqdose * TISSUESWEIGHTINGFACTOR[0] + coloneqdose * TISSUESWEIGHTINGFACTOR[0] + 
 		lungdose * TISSUESWEIGHTINGFACTOR[0] + stomachdose * TISSUESWEIGHTINGFACTOR[0] + 
