@@ -135,6 +135,18 @@ std::string infoInSFGet(std::fstream& filein, std::string commandtmp, char* line
 	{
 		nextcommandline = phantominfoGETSF(filein, linetmp, phantominfo);
 	}
+	else if (0 == commandtmp.find("tally 144")) // tally 144计数出现问题，跳过
+	{
+		while (true != filein.eof())
+		{
+			filein.getline(linetmp, 299);
+			if ('1' == *linetmp)   // 到了下一个命令行
+			{
+				nextcommandline = linetmp;
+				return nextcommandline;
+			}
+		}
+	}
 	else if (0 == commandtmp.find("tally"))     // tally行,分f4和f8两种，可能出现“1tally fluctuation charts”这种情况，需要做判断
 	{
 		TallyInfo onetally;

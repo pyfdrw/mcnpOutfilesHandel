@@ -61,10 +61,11 @@ const std::vector<std::string> ergall = { "0", "1", "2", "3", "4", "5", "6", "7"
 const std::vector<std::string> ergall_val = { "0.02", "0.03", "0.04" , "0.05" , "0.06" , "0.08" , "0.1" , "0.15" , "0.2" , "0.3" , "0.4" , "0.5" , "0.6" , "0.8" , "1" , "2" , "4" , "6" , "8" , "10" };
 
 // 红骨髓的分布值，注意总百分比不是1
-const std::vector<double>  FractionRBMForAdult = { 2.4,  0.9,  15.9,  6.8,  1.6,  13.1,  8.8 ,  2.7,  2.2,  8.9 ,  6.8 ,  5.5,  1.7 };
-const std::vector<double>  FractionRBMFor15 = { 2.5,  0.9,  11.6,  9.4,  1.1,  15.6,  10.9,  2.9,  2.7,  10.9,  8.4 ,  6.7,  2.1 };
-const std::vector<double>  FractionRBMFor10 = { 3.1,  1  ,  9.2 ,  9.2,  0.9,  18.5,  13.6,  3.3,  3.3,  13.7,  10.5,  8.4,  2.7 };
-const std::vector<double>  FractionRBMFor5 = { 2.3,  0.8,  7.6 ,  6.7,  0.8,  17.5,  16.1,  2.8,  3.9,  16.1,  12.3,  9.9,  3.1 };
+// const std::vector<double>  FractionRBMForAdult = { 2.3,  0.8,  7.6 ,  6.7,  0.8,  17.5,  16.1,  2.8,  3.9,  16.1,  12.3,  9.9,  3.1 };
+const std::vector<double>  FractionRBMForAdult = { 2.5 ,0.8 ,7.7 ,7.4 ,0.8 ,19.5 ,15.2 ,2.9 ,3.7 ,15.3 ,11.7 ,9.4 ,3 };
+const std::vector<double>  FractionRBMFor15 = { 3.1,  1  ,  9.2 ,  9.2,  0.9,  18.5,  13.6,  3.3,  3.3,  13.7,  10.5,  8.4,  2.7 } ;
+const std::vector<double>  FractionRBMFor10 = { 2.5,  0.9,  11.6,  9.4,  1.1,  15.6,  10.9,  2.9,  2.7,  10.9,  8.4 ,  6.7,  2.1 };
+const std::vector<double>  FractionRBMFor5 = { 2.4,  0.9,  15.9,  6.8,  1.6,  13.1,  8.8 ,  2.7,  2.2,  8.9 ,  6.8 ,  5.5,  1.7 };
 
 // 组织权重因子
 const double TISSUESWEIGHTINGFACTOR[4] = { 0.12, 0.08, 0.04, 0.01 };
@@ -117,6 +118,7 @@ int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll, std::string outpu
 int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAll, std::string outputfilepath);
 float *calDCCKWithOutShow(int organ, std::string agetmp, AllInfo InfoForAll);
 float *calDCCKWithOutShow(int organleft, int organright, std::string agetmp, AllInfo InfoForAll);
+float *calDCCKWithShow(int organleft, int organright, std::string agetmp, AllInfo InfoForAll); // 做展示用
 
 // 计算骨髓的吸收剂量转换系数DCCk RBM
 int calDCCKRBMWithShow(PhantomAgeDirErg instancename, AllInfo InfoForAll, std::string outputfilepath);
@@ -149,5 +151,12 @@ std::pair<float, float> getSingleOrganErg(PhantomAgeDirErg instancename, AllInfo
 float getSingleOrganWet(PhantomAgeDirErg instancename, AllInfo& InfoForAll, int organID);
 
 // 收集需要的信息
-int dataControlFun(std::string dirpath, AllInfo InfoForAll);
+int dataControlFun(std::string dirpath, AllInfo& InfoForAll);
 int organCompareOut(float *ratiodata, std::string filename);
+
+// 生成对比数据
+float* organCompare(int organID1, int organID2, std::string compare1, std::string compare2, AllInfo& InfoForAll);
+float* organCompare(int organID, std::string compare1, std::string compare2, AllInfo& InfoForAll);
+
+int outControl(float* ratiodata, int organID, std::string compare1, std::string compare2, std::string workpath, AllInfo& InfoForAll);
+int outControl(float* ratiodata, int organID1, int organID2, std::string compare1, std::string compare2, std::string workpath, AllInfo& InfoForAll);

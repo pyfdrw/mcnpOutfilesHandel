@@ -121,7 +121,7 @@ int showSinglePhantomInfo(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 	
 }
 
-// 器官输入顺序无所谓,不包括红骨髓部分
+// 器官输入顺序无所谓,不可计算红骨髓部分
 float *calDCCKWithOutShow(int organleft, int organright, std::string agetmp, AllInfo InfoForAll)
 {
 	// 获得器官的质量信息
@@ -215,6 +215,105 @@ float *calDCCKWithOutShow(int organleft, int organright, std::string agetmp, All
 	// 	}
 	// 	std::cout << std::endl;
 	// }
+
+
+	return conversioncoefficients;
+}
+
+// 器官输入顺序无所谓,不可计算红骨髓部分
+float *calDCCKWithShow(int organleft, int organright, std::string agetmp, AllInfo InfoForAll)
+{
+	// 获得器官的质量信息
+	float organleftmass = 0;
+	float organrightmass = 0;
+
+	if (InfoForAll.phantominfo_count_all.end() != InfoForAll.phantominfo_count_all.find(agetmp))
+	{
+		std::map <std::string, PhantomInfo>::iterator onephantom_p;
+		onephantom_p = InfoForAll.phantominfo_count_all.find(agetmp);
+		std::map<int, float>::iterator infotmp_p;
+		if ((onephantom_p->second).organwet_count.end() != (infotmp_p = (onephantom_p->second.organwet_count.find(organleft)))) // 不存在这个器官
+		{
+			organleftmass = infotmp_p->second;
+		}
+		else
+		{
+			return 0;
+		}
+		if ((onephantom_p->second).organwet_count.end() != (infotmp_p = (onephantom_p->second.organwet_count.find(organright)))) // 不存在这个器官
+		{
+			organrightmass = infotmp_p->second;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else // 不存在这个年龄段
+	{
+		return 0;
+	}
+
+	// 创建储存转换系数的数组
+	float* conversioncoefficients = new float[dirall.size() * ergall.size()]; // 能量作为列，方向作为行
+
+																			  // DCC? = Dt / ? = 1.602 * 1e2 * ES / m 
+																			  // ?通量， E MeV, S cm2, m g, DCC? pGy*cm^2
+																			  // DCCk = Dt/Ka = DCC? / (Ka/?)
+																			  // (Ka/?) 对应于 KERMAFREEINAIR的数值
+
+	float dcctongliang = 0;
+	for (int i = 0; i < ergall.size(); i++)  // 能量遍历
+	{
+		for (int j = 0; j < dirall.size(); j++)  // 方向遍历
+		{
+			std::string singleinstence; singleinstence.clear();
+			float tallyforleft = 0; float tallyforright = 0;
+			singleinstence = agetmp + "_" + dirall[j] + "_" + ergall[i];
+			std::map<std::string, TallyInfoInAPhantom>::iterator tallinaphantom_p;
+			if (InfoForAll.tally_count_all.end() != (tallinaphantom_p = InfoForAll.tally_count_all.find(singleinstence))) // 找到这个文件
+			{
+				std::map<int, TallyInfo>::iterator onetall_p;
+				if (tallinaphantom_p->second.tallyinaphantom_count.end() != (onetall_p = tallinaphantom_p->second.tallyinaphantom_count.find(1008)))
+				{
+					if (onetall_p->second.valerr_count.end() != onetall_p->second.valerr_count.find(organleft))
+					{
+						tallyforleft = (onetall_p->second.valerr_count.find(organleft))->second.first;
+					}
+					if (onetall_p->second.valerr_count.end() != onetall_p->second.valerr_count.find(organright))
+					{
+						tallyforright = (onetall_p->second.valerr_count.find(organright))->second.first;
+					}
+				}
+			}
+			// 至此完成两个器官的f8的读数的确定
+			dcctongliang = (tallyforleft + tallyforright) / (organleftmass + organrightmass) * 1.602 * 100 * SOURCEAREA[j];
+			conversioncoefficients[j + i * dirall.size()] = dcctongliang;  // DCC?
+		}
+	}
+
+	// DCCk的求取
+	for (int i = 0; i < ergall.size(); i++)  // 能量遍历
+	{
+		for (int j = 0; j < dirall.size(); j++)  // 方向遍历
+		{
+			conversioncoefficients[j + i * dirall.size()] = conversioncoefficients[j + i * dirall.size()] / KERMAFREEINAIR[i];
+		}
+	}
+
+	// 输出部分
+	std::cout << "------------------" << std::endl;
+	std::cout << "Organ     " << organleft << "  +  " << organright << std::endl;
+	std::cout << "Erenge(MeV)       AP       PA     LLAT     RLAT      ROT      ISO" << std::endl;
+	for (int i = 0; i < ergall.size(); i++)  // 能量遍历
+	{
+		std::cout << std::setw(11) << std::setprecision(3) << std::left << ergall_val[i];
+		for (int j = 0; j < dirall.size(); j++)  // 方向遍历
+		{
+			std::cout << std::setw(9) << std::setprecision(3) << std::right << conversioncoefficients[j + i * dirall.size()];
+		}
+		std::cout << std::endl;
+	}
 
 
 	return conversioncoefficients;
@@ -425,6 +524,7 @@ int calDCCK(int organleft, int organright, std::string agetmp, AllInfo InfoForAl
 
 	return 0;
 }
+
 // 单个文件输出到路径outputfilepath
 int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll, std::string outputfilepath)
 {
@@ -494,18 +594,18 @@ int calDCCK(int organ, std::string agetmp, AllInfo InfoForAll, std::string outpu
 	}
 
 	// 输出部分
-	std::cout << "------------------" << std::endl;
-	std::cout << "Organ    " << organ << std::endl;
-	std::cout << "Erenge(MeV)       AP       PA     LLAT     RLAT      ROT      ISO" << std::endl;
-	for (int i = 0; i < ergall.size(); i++)  // 能量遍历
-	{
-		std::cout << std::setw(11) << std::setprecision(3) << std::left << ergall_val[i];
-		for (int j = 0; j < dirall.size(); j++)  // 方向遍历
-		{
-			std::cout << std::setw(9) << std::setprecision(3) << std::right << conversioncoefficients[j + i * dirall.size()];
-		}
-		std::cout << std::endl;
-	}
+	// std::cout << "------------------" << std::endl;
+	// std::cout << "Organ    " << organ << std::endl;
+	// std::cout << "Erenge(MeV)       AP       PA     LLAT     RLAT      ROT      ISO" << std::endl;
+	// for (int i = 0; i < ergall.size(); i++)  // 能量遍历
+	// {
+	// 	std::cout << std::setw(11) << std::setprecision(3) << std::left << ergall_val[i];
+	// 	for (int j = 0; j < dirall.size(); j++)  // 方向遍历
+	// 	{
+	// 		std::cout << std::setw(9) << std::setprecision(3) << std::right << conversioncoefficients[j + i * dirall.size()];
+	// 	}
+	// 	std::cout << std::endl;
+	// }
 
 	// 输出到文件
 	std::fstream fileout;
@@ -1017,8 +1117,8 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 
 	float thyroiddose = (thyroiddoseMale + thyroiddoseFemale) / 2 / KERMAFREEINAIR[ergindex];
 	// 骨表面
-	// only cell 14 25 27 29 40 42 44 45 46  50  52  54  56, 对应tally *f1008
-	std::vector<int> bonesurface = { 14, 25, 27, 29, 40, 42, 44, 45, 46,  50,  52,  54,  56 };
+	// only cell 14 25 27 29 40 42 44 45 46 48 50  52  54  56, 对应tally *f1008
+	std::vector<int> bonesurface = { 14, 25, 27, 29, 40, 42, 44, 45, 46, 48, 50,  52,  54,  56 };
 	float BSdoseMale = 0; float BSdoseFemale = 0;
 	float ergsum1 = 0; float ergsum2 = 0;
 	float wetsum1 = 0; float wetsum2 = 0;
@@ -1073,8 +1173,7 @@ float calEffectiveDose(PhantomAgeDirErg instancename, AllInfo InfoForAll)
 		gonaddose * TISSUESWEIGHTINGFACTOR[1] + urinarydose * TISSUESWEIGHTINGFACTOR[2] + 
 		oesophagusdose * TISSUESWEIGHTINGFACTOR[2] + liverdose * TISSUESWEIGHTINGFACTOR[2] + 
 		thyroiddose * TISSUESWEIGHTINGFACTOR[2] + BSdose * TISSUESWEIGHTINGFACTOR[3] + 
-		braindose * TISSUESWEIGHTINGFACTOR[3] + salivaryglandsdose * TISSUESWEIGHTINGFACTOR[3] + skindose * TISSUESWEIGHTINGFACTOR[3])) / 
-		KERMAFREEINAIR[ergindex];
+		braindose * TISSUESWEIGHTINGFACTOR[3] + salivaryglandsdose * TISSUESWEIGHTINGFACTOR[3] + skindose * TISSUESWEIGHTINGFACTOR[3]));
 
 	return equlvantdose;
 }
